@@ -8,7 +8,9 @@ DISK_SIZE=16
 WIN_ISO="./en-us_windows_10_iot_enterprise_version_22h2_x64_dvd_51cc370f.iso"
 VIRTIO_ISO="./virtio-win.iso"
 AUTOUNATTENDED_XML="./Scripts/autounattend.xml"
+
 AUTOUNATTENDED_ISO="/tmp/autounattend.iso"
+LIBVIRT_DEFAULT_URI="qemu:///system"
 
 # Cleanup
 function cleanup {

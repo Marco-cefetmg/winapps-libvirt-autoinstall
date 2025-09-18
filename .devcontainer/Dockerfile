@@ -29,4 +29,6 @@ RUN systemctl enable libvirtd \
     && sed -i "/Service/a ExecStartPost=\/bin\/chmod 666 /dev/kvm" /usr/lib/systemd/system/libvirtd.service \
     && mkdir -p /var/lib/libvirt/images/
 
+ENV LIBVIRT_DEFAULT_URI="qemu:///system"
+
 ENTRYPOINT ["/usr/sbin/init"]
