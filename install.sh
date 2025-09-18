@@ -67,7 +67,7 @@ virt-install \
     --clock hypervclock_present=yes,rtc_present=no,pit_present=no,kvmclock_present=no \
     --xml ./features/hyperv/@mode=passthrough \
     --network network=default,model=virtio \
-    --graphics spice,listen=127.0.0.1,port=5900 \
+    --graphics spice,listen=127.0.0.1 \
     --video virtio \
     --channel spicevmc \
 	--channel unix,target_type=virtio,name=org.qemu.guest_agent.0 \
