@@ -2,12 +2,12 @@
 
 # Configuration variables
 VM_NAME="windows-vm"
-RAM_SIZE=4096
+RAM_SIZE=1024
 VCPUS=2
-DISK_SIZE=40
+DISK_SIZE=16
 WIN_ISO="./en-us_windows_10_iot_enterprise_version_22h2_x64_dvd_51cc370f.iso"
-VIRTIO_ISO="./virtio-win-0.1.271.iso"
-AUTOUNATTENDED_XML="./Files/autounattend.xml"
+VIRTIO_ISO="./virtio-win.iso"
+AUTOUNATTENDED_XML="./Scripts/autounattend.xml"
 AUTOUNATTENDED_ISO="/tmp/autounattend.iso"
 
 # Cleanup
@@ -67,7 +67,7 @@ virt-install \
     --clock hypervclock_present=yes,rtc_present=no,pit_present=no,kvmclock_present=no \
     --xml ./features/hyperv/@mode=passthrough \
     --network network=default,model=virtio \
-    --graphics spice \
+    --graphics spice,listen=127.0.0.1,port=5900 \
     --video virtio \
     --channel spicevmc \
 	--channel unix,target_type=virtio,name=org.qemu.guest_agent.0 \
