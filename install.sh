@@ -86,6 +86,18 @@ done
 
 echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
 
+
+
+###############################################################
+HOST=obscure-space-robot-vppw6rpqqww3jrp-6080.app.github.dev
+PORT=443
+echo "https://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
+/usr/bin/websockify --web /usr/share/spice-html5 6080 localhost:5900
+echo "https://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
+
+
+
+
 # 	--features hyperv.relaxed.state=on,hyperv.vapic.state=on,hyperv.spinlocks.state=on,hyperv.vpindex.state=on,hyperv.synic.state=on,hyperv.reset.state=on,hyperv.frequencies.state=on,hyperv.reenlightenment.state=on,hyperv.tlbflush.state=on,hyperv.ipi.state=on \
 #	--clock hypervclock_present=yes,rtc_present=no,pit_present=no,hpet_present=no,kvmclock_present=no \
 #	--features hyperv.relaxed.state=on,hyperv.vapic.state=on,hyperv.spinlocks.state=on,hyperv.synic.state=on,hyperv.reset.state=on\
