@@ -28,27 +28,38 @@ if [[ $1 == "-c" ]]; then
 fi
 
 
-# Checks if the WIN_ISO file exists, if not, downloads it
+# Checks if the WIN_ISO file exists, if not, downloads it with Mido.sh
 if [ ! -f "$WIN_ISO" ]; then
     echo "File $WIN_ISO not found. Searching..."
-    WIN_ISO=$(find . -maxdepth 1 -type f -iname "*windows*.iso" -exec readlink -f {} \;)
-    if [ $? == 0 ]; then
+    WIN_ISO=$(find . -maxdepth 1 -type f -iname "*windows*.iso" -o -iname "*win1*.iso" -exec readlink -f {} \;)
+    if [ $? == 0 ] && [ $WIN_ISO != null ]; then
         echo "File $WIN_ISO found."
+        exit 0
+    else
+    echo "File $WIN_ISO not found. Downloading..."
+    curl "https://raw.githubusercontent.com/ElliotKillick/Mido/refs/heads/main/Mido.sh" | bash -s -- win10x64-enterprise-ltsc-eval || {
+        echo "Error downloading $WIN_ISO."
+        exit 1
+    }
+    WIN_ISO=$(find . -maxdepth 1 -type f -iname "*windows*.iso" -o -iname "*win1*.iso" -exec readlink -f {} \;)
     fi
-else
-    echo "$WIN_ISO found."
 fi
 
 # Checks if the VIRTIO_ISO file exists, if not, downloads it
 if [ ! -f "$VIRTIO_ISO" ]; then
-    echo "File $VIRTIO_ISO not found. Downloading..."
+    echo "File $VIRTIO_ISO not found. Searching..."
+    VIRTIO_ISO=$(find . -maxdepth 1 -type f -iname "*virtio*.iso" -exec readlink -f {} \;)
+    if [ $? == 0 ] && [ $VIRTIO_ISO != null ]; then
+        echo "File $VIRTIO_ISO found."
+        exit 0
+    else
     VIRTIO_ISO="virtio-win.iso"
+    echo "File $VIRTIO_ISO not found. Downloading..."
     wget -O "$VIRTIO_ISO" "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso" || {
         echo "Error downloading $VIRTIO_ISO."
         exit 1
     }
-else
-    echo "$VIRTIO_ISO found."
+    fi
 fi
 
 # Create ISO with autounattended.xml
@@ -79,9 +90,9 @@ virt-install \
     --boot cdrom,uefi \
     --noautoconsole
 
-for run in {1..3}; do
+for run in {1..5; do
     virsh send-key "$VM_NAME" --codeset win32 --holdtime 1000 VK_SPACE
-    sleep 1
+    sleep 1.5
 done
 
 echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
@@ -89,10 +100,14 @@ echo "VM creation started. Connect with virt-viewer or virt-manager to monitor p
 
 
 ###############################################################
-HOST=obscure-space-robot-vppw6rpqqww3jrp-6080.app.github.dev
-PORT=443
-echo "https://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
-/usr/bin/websockify --web /usr/share/spice-html5 6080 localhost:5900
+if [[ -z "$CODESPACE_NAME" ]]; then
+    PORT=6080
+    HOST=127.0.0.1
+else
+    PORT=443
+    HOST=${CODESPACE_NAME}-${PORT}.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}
+fi
+/usr/bin/websockify --web /usr/share/spice-html5 ${PORT} localhost:5900
 echo "https://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
 
 
