@@ -60,6 +60,23 @@ if [ ! -f "$VIRTIO_ISO" ]; then
     fi
 fi
 
+# Checks if the AUTOUNATTENDED_XML file exists, if not, downloads it
+if [ ! -f "$AUTOUNATTENDED_XML" ]; then
+    echo "File $AUTOUNATTENDED_XML not found. Searching..."
+    AUTOUNATTENDED_XML=$(find . -maxdepth 1 -type f -iname "*unattend.xml" -exec readlink -f {} \;)
+    if [ $? == 0 ] && [ -f "$AUTOUNATTENDED_XML" ]; then
+        echo "File $AUTOUNATTENDED_XML found."
+        exit 0
+    else
+    echo "File $AUTOUNATTENDED_XML not found. Downloading..."
+    wget -O ./autounattend.xml $(echo $AUTOUNATTENDED_URL | sed 's!unattend-generator!unattend-generator/download!g') || {
+        echo "Error downloading $AUTOUNATTENDED_XML."
+        exit 1
+    }
+    AUTOUNATTENDED_XML=$(find . -maxdepth 1 -type f -iname "*unattend.xml" -exec readlink -f {} \;)
+    fi
+fi
+
 # Create ISO with autounattended.xml
 echo "Creating autounattend ISO..."
 mkisofs -o "$AUTOUNATTENDED_ISO" -J -r "$AUTOUNATTENDED_XML" 2>/dev/null || {
