@@ -7,48 +7,57 @@ VCPUS=2
 DISK_SIZE=16
 WIN_ISO="./en-us_windows_10_iot_enterprise_version_22h2_x64_dvd_51cc370f.iso"
 VIRTIO_ISO="./virtio-win.iso"
-AUTOUNATTENDED_XML="./Scripts/autounattend.xml"
+#export AUTOUNATTENDED_URL=""
+AUTOUNATTENDED_XML="./autounattend.xml"
 
 AUTOUNATTENDED_ISO="/tmp/autounattend.iso"
 LIBVIRT_DEFAULT_URI="qemu:///system"
 
 # Cleanup
 function cleanup {
-	echo "Cleaning up..."
-	virsh destroy "$VM_NAME" 2>/dev/null
-	virsh undefine "$VM_NAME" --nvram 2>/dev/null
-	sudo rm -f /var/lib/libvirt/images/"$VM_NAME".qcow2
-	sudo rm -f "$AUTOUNATTENDED_ISO"
+    echo "Cleaning up..."
+    virsh destroy "$VM_NAME" 2>/dev/null
+    virsh undefine "$VM_NAME" --nvram 2>/dev/null
+    sudo rm -f /var/lib/libvirt/images/"$VM_NAME".qcow2
+    sudo rm -f "$AUTOUNATTENDED_ISO"
 }
 
 if [[ $1 == "-c" ]]; then
-	echo "Cleanup mode activated."
-	cleanup
-	exit 1
+    echo "Cleanup mode activated."
+    cleanup
+    exit 1
 fi
 
-
-# Checks if the WIN_ISO file exists, if not, downloads it
+# Checks if the WIN_ISO file exists, if not, downloads it with Mido.sh
 if [ ! -f "$WIN_ISO" ]; then
     echo "File $WIN_ISO not found. Searching..."
-    WIN_ISO=$(find . -maxdepth 1 -type f -iname "*windows*.iso" -exec readlink -f {} \;)
-    if [ $? == 0 ]; then
+    WIN_ISO=$(find . -maxdepth 1 -type f \( -iname "*windows*.iso" -o -iname "*win1*.iso" \) -exec readlink -f {} \;)
+    if [ $? == 0 ] && [ -f "$WIN_ISO" ]; then
         echo "File $WIN_ISO found."
+    else
+        echo "File $WIN_ISO not found. Downloading..."
+        curl "https://raw.githubusercontent.com/ElliotKillick/Mido/refs/heads/main/Mido.sh" | bash -s -- win10x64-enterprise-ltsc-eval || {
+            echo "Error downloading $WIN_ISO."
+            exit 1
+        }
+        WIN_ISO=$(find . -maxdepth 1 -type f \( -iname "*windows*.iso" -o -iname "*win1*.iso" \) -exec readlink -f {} \;)
     fi
-else
-    echo "$WIN_ISO found."
 fi
 
 # Checks if the VIRTIO_ISO file exists, if not, downloads it
 if [ ! -f "$VIRTIO_ISO" ]; then
-    echo "File $VIRTIO_ISO not found. Downloading..."
-    VIRTIO_ISO="virtio-win.iso"
-    wget -O "$VIRTIO_ISO" "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso" || {
-        echo "Error downloading $VIRTIO_ISO."
-        exit 1
-    }
-else
-    echo "$VIRTIO_ISO found."
+    echo "File $VIRTIO_ISO not found. Searching..."
+    VIRTIO_ISO=$(find . -maxdepth 1 -type f -iname "*virtio*.iso" -exec readlink -f {} \;)
+    if [ $? == 0 ] && [ -f "$VIRTIO_ISO" ]; then
+        echo "File $VIRTIO_ISO found."
+    else
+        VIRTIO_ISO="virtio-win.iso"
+        echo "File $VIRTIO_ISO not found. Downloading..."
+        wget -O "$VIRTIO_ISO" "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso" || {
+            echo "Error downloading $VIRTIO_ISO."
+            exit 1
+        }
+    fi
 fi
 
 # Create ISO with autounattended.xml
@@ -72,7 +81,7 @@ virt-install \
     --graphics spice,listen=127.0.0.1 \
     --video virtio \
     --channel spicevmc \
-	--channel unix,target_type=virtio,name=org.qemu.guest_agent.0 \
+    --channel unix,target_type=virtio,name=org.qemu.guest_agent.0 \
     --cdrom "$WIN_ISO" \
     --disk path="$VIRTIO_ISO",device=cdrom,bus=sata \
     --disk path="$AUTOUNATTENDED_ISO",device=cdrom,bus=sata \
@@ -86,17 +95,12 @@ done
 
 echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
 
-
-
 ###############################################################
 HOST=obscure-space-robot-vppw6rpqqww3jrp-6080.app.github.dev
 PORT=443
 echo "https://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
 /usr/bin/websockify --web /usr/share/spice-html5 6080 localhost:5900
 echo "https://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
-
-
-
 
 # 	--features hyperv.relaxed.state=on,hyperv.vapic.state=on,hyperv.spinlocks.state=on,hyperv.vpindex.state=on,hyperv.synic.state=on,hyperv.reset.state=on,hyperv.frequencies.state=on,hyperv.reenlightenment.state=on,hyperv.tlbflush.state=on,hyperv.ipi.state=on \
 #	--clock hypervclock_present=yes,rtc_present=no,pit_present=no,hpet_present=no,kvmclock_present=no \
