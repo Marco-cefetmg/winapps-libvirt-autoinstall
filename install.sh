@@ -51,8 +51,8 @@ if [ ! -f "$VIRTIO_ISO" ]; then
     if [ $? == 0 ] && [ -f "$VIRTIO_ISO" ]; then
         echo "File $VIRTIO_ISO found."
     else
-        VIRTIO_ISO="virtio-win.iso"
         echo "File $VIRTIO_ISO not found. Downloading..."
+        VIRTIO_ISO="virtio-win.iso"
         wget -O "$VIRTIO_ISO" "https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/latest-virtio/virtio-win.iso" || {
             echo "Error downloading $VIRTIO_ISO."
             exit 1
@@ -69,7 +69,7 @@ if [ ! -f "$AUTOUNATTENDED_XML" ]; then
         exit 0
     else
     echo "File $AUTOUNATTENDED_XML not found. Downloading..."
-    wget -O ./autounattend.xml $(echo $AUTOUNATTENDED_URL | sed 's!unattend-generator!unattend-generator/download!g') || {
+    wget -O ./autounattend.xml $(curl -Ls -o /dev/null -w %{url_effective} $AUTOUNATTENDED_URL -O | sed 's!-generator!-generator/download!g') || {
         echo "Error downloading $AUTOUNATTENDED_XML."
         exit 1
     }
