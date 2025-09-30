@@ -24,6 +24,5 @@ jobs:
         uses: devcontainers/ci@v0.3.1900000417 # Use the devcontainers/ci action and pin version
         with:
           imageName: ghcr.io/${{ github.repository }}/almalinux-libvirt # Customize image name
-          cacheFrom: ghcr.io/${{ github.repository }}/almalinux-libvirt:latest # Use existing image for caching
           push: always # Push the image to the registry
           platform: linux/amd64 # Specify target platforms
