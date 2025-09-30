@@ -1,17 +1,18 @@
 #!/bin/bash
+# Script to create a Windows VM with unattended installation using virt-install
 
-# Configuration variables
-VM_NAME="windows-vm"
-RAM_SIZE=1024
-VCPUS=2
-DISK_SIZE=16
-WIN_ISO="./en-us_windows_10_iot_enterprise_version_22h2_x64_dvd_51cc370f.iso"
-VIRTIO_ISO="./virtio-win.iso"
-#export AUTOUNATTENDED_URL=""
-AUTOUNATTENDED_XML="./autounattend.xml"
+# Configuration variables with default values
+VM_NAME=${VM_NAME:="windows-vm"}
+RAM_SIZE=${RAM_SIZE:="1024"}
+VCPUS=${VCPUS:="2"}
+DISK_SIZE=${DISK_SIZE:="16"}
+WIN_ISO=${WIN_ISO:="./en-us_windows_10_iot_enterprise_version_22h2_x64_dvd_51cc370f.iso"}
+VIRTIO_ISO=${VIRTIO_ISO:="./virtio-win.iso"}
+AUTOUNATTENDED_URL=${AUTOUNATTENDED_URL:="https://tinyurl.com/3kzsb4xj"}
+AUTOUNATTENDED_XML=${AUTOUNATTENDED_XML:="./autounattend.xml"}
+AUTOUNATTENDED_ISO=${AUTOUNATTENDED_ISO:="/tmp/autounattend.iso"}
+LIBVIRT_DEFAULT_URI=${LIBVIRT_DEFAULT_URI:="qemu:///system"}
 
-AUTOUNATTENDED_ISO="/tmp/autounattend.iso"
-LIBVIRT_DEFAULT_URI="qemu:///system"
 
 # Cleanup
 function cleanup {
