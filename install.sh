@@ -29,6 +29,23 @@ if [[ $1 == "-c" ]]; then
     exit 1
 fi
 
+# Checks if the AUTOUNATTENDED_XML file exists, if not, downloads it
+if [ ! -f "$AUTOUNATTENDED_XML" ]; then
+    echo "File $AUTOUNATTENDED_XML not found. Searching..."
+    AUTOUNATTENDED_XML=$(find . -maxdepth 1 -type f -iname "*unattend.xml" -exec readlink -f {} \;)
+    if [ $? == 0 ] && [ -f "$AUTOUNATTENDED_XML" ]; then
+        echo "File $AUTOUNATTENDED_XML found."
+        exit 0
+    else
+    echo "File $AUTOUNATTENDED_XML not found. Downloading..."
+    wget -O ./autounattend.xml $(curl -Ls -o /dev/null -w %{url_effective} $AUTOUNATTENDED_URL -O | sed 's!-generator!-generator/download!g') || {
+        echo "Error downloading $AUTOUNATTENDED_XML."
+        exit 1
+    }
+    AUTOUNATTENDED_XML=$(find . -maxdepth 1 -type f -iname "*unattend.xml" -exec readlink -f {} \;)
+    fi
+fi
+
 # Checks if the WIN_ISO file exists, if not, downloads it with Mido.sh
 if [ ! -f "$WIN_ISO" ]; then
     echo "File $WIN_ISO not found. Searching..."
@@ -58,23 +75,6 @@ if [ ! -f "$VIRTIO_ISO" ]; then
             echo "Error downloading $VIRTIO_ISO."
             exit 1
         }
-    fi
-fi
-
-# Checks if the AUTOUNATTENDED_XML file exists, if not, downloads it
-if [ ! -f "$AUTOUNATTENDED_XML" ]; then
-    echo "File $AUTOUNATTENDED_XML not found. Searching..."
-    AUTOUNATTENDED_XML=$(find . -maxdepth 1 -type f -iname "*unattend.xml" -exec readlink -f {} \;)
-    if [ $? == 0 ] && [ -f "$AUTOUNATTENDED_XML" ]; then
-        echo "File $AUTOUNATTENDED_XML found."
-        exit 0
-    else
-    echo "File $AUTOUNATTENDED_XML not found. Downloading..."
-    wget -O ./autounattend.xml $(curl -Ls -o /dev/null -w %{url_effective} $AUTOUNATTENDED_URL -O | sed 's!-generator!-generator/download!g') || {
-        echo "Error downloading $AUTOUNATTENDED_XML."
-        exit 1
-    }
-    AUTOUNATTENDED_XML=$(find . -maxdepth 1 -type f -iname "*unattend.xml" -exec readlink -f {} \;)
     fi
 fi
 
