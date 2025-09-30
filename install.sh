@@ -59,6 +59,7 @@ if [ ! -f "$WIN_ISO" ]; then
             exit 1
         }
         WIN_ISO=$(find . -maxdepth 1 -type f \( -iname "*windows*.iso" -o -iname "*win1*.iso" \) -exec readlink -f {} \;)
+        sed -i '/<ProductKey>/,/<\/ProductKey>/d' autounattend.xml
     fi
 fi
 
