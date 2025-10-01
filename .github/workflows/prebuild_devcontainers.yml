@@ -4,8 +4,11 @@ on:
   push:
     paths:
       - '.devcontainer/**' # Trigger on changes to devcontainer files
+      - '.github/workflows/prebuild_devcontainers.yml' # Trigger on changes to this workflow file
   workflow_dispatch: # Allow manual triggering
-
+permissions:
+  contents: read # To checkout the repository
+  packages: write # To push to GitHub Container Registry
 jobs:
   prebuild:
     runs-on: ubuntu-latest
