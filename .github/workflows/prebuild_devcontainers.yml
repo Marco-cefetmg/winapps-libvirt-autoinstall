@@ -1,0 +1,40 @@
+name: Prebuild Dev Container Image
+
+on:
+  push:
+    paths:
+      - '.devcontainer/**' # Trigger on changes to devcontainer files
+      - '.github/workflows/prebuild_devcontainers.yml' # Trigger on changes to this workflow file
+  workflow_dispatch: # Allow manual triggering
+jobs:
+  prebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          use: true
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: repo_lower
+        name: Convert repository name to lowercase
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ github.repository }}
+
+      - name: Pre-build dev container image
+        uses: devcontainers/ci@v0.3 # Use the devcontainers/ci action and pin version
+        with:
+          imageName: ghcr.io/${{ steps.repo_lower.outputs.lowercase }}/almalinux-libvirt # Customize image name
+          cacheFrom: type=registry,ref=ghcr.io/${{ steps.repo_lower.outputs.lowercase }}/almalinux-libvirt:latest # Use cache from the registry
+          push: always # Push the image to the registry
+          platform: linux/amd64 # Specify target platforms

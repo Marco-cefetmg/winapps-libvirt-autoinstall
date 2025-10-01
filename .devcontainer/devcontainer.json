@@ -1,7 +1,8 @@
 {
     "build": {
         "dockerfile": "./Dockerfile",
-        "context": "."
+        "context": ".",
+        "cacheFrom": "type=registry,ref=ghcr.io/marco-cefetmg/winapps-libvirt-autoinstall/almalinux-libvirt:latest"
     },
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2": {
