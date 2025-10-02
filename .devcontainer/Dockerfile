@@ -8,9 +8,12 @@ RUN dnf install -y dnf-plugin-config-manager dnf-plugins-core epel-release \
     && dnf -y copr enable ligenix/enterprise-qemu-wider \
     && dnf config-manager --setopt=*.priority=10 --setopt=*qemu*.priority=1 --save \
     && dnf install -y \
-        systemd sudo git git-core openssl diffutils \
-        gettext-libs autoconf automake libtool \
-        genisoimage dialog freerdp git iproute libnotify nmap-ncat \
+        systemd sudo \
+        gawk bash-completion openssh-clients gnupg2 iproute procps lsof \
+        net-tools psmisc wget ca-certificates rsync unzip xz zip nano \
+        vim-minimal less jq openssl-libs krb5-libs libicu zlib sudo sed \
+        grep which man-db strace git zsh \
+        genisoimage dialog freerdp libnotify nmap-ncat \
         libvirt virt-install virt-manager spice-html5 python3-websockify \
     && (cd /lib/systemd/system/sysinit.target.wants/ ; for i in * ; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i ; done) \
     && rm -f /lib/systemd/system/multi-user.target.wants/* \
