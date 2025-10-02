@@ -3,7 +3,7 @@ name: Prebuild Dev Container Image
 on:
   push:
     paths:
-      - '.devcontainer/**' # Trigger on changes to devcontainer files
+      - '.github/.devcontainer/**' # Trigger on changes to devcontainer files
       - '.github/workflows/prebuild_devcontainers.yml' # Trigger on changes to this workflow file
   workflow_dispatch: # Allow manual triggering
 jobs:
@@ -37,6 +37,7 @@ jobs:
       - name: Pre-build dev container image
         uses: devcontainers/ci@v0.3 # Use the devcontainers/ci action and pin version
         with:
+          subFolder: .github
           imageName: ghcr.io/${{ steps.repo_lower.outputs.lowercase }}/almalinux-libvirt # Customize image name
           cacheFrom: type=registry,ref=ghcr.io/${{ steps.repo_lower.outputs.lowercase }}/almalinux-libvirt:latest # Use cache from the registry
           push: always # Push the image to the registry
