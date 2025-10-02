@@ -31,10 +31,10 @@ RUN usermod -aG libvirt root && usermod -aG kvm root
 RUN systemctl enable libvirtd \
     && systemctl enable virtlockd \
     && systemctl enable virtlogd \
-    && sed -i "/Service/a ExecStartPost=chmod 666 /dev/kvm && usermod -aG libvirt,kvm vscode" /usr/lib/systemd/system/libvirtd.service \
+    && sed -i "/Service/a ExecStartPost=bash -c \"\/bin\/chmod 666 /dev/kvm && \/sbin\/usermod -aG libvirt,kvm vscode\"" /usr/lib/systemd/system/libvirtd.service \
     && sed -i "s/#remember_owner = 1/remember_owner = 0/g" /etc/libvirt/qemu.conf \
     && mkdir -p /var/lib/libvirt/images/
-#    && sed -i "/Service/a ExecStartPost=\/bin\/chmod 666 /dev/kvm" /usr/lib/systemd/system/libvirtd.service \
+
 ENV LIBVIRT_DEFAULT_URI="qemu:///system"
 
 ENTRYPOINT ["/usr/sbin/init"]
