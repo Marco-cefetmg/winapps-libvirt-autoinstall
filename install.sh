@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -xe
+
 # Script to create a Windows VM with unattended installation using virt-install
 
 # Configuration variables with default values
@@ -88,7 +91,7 @@ mkisofs -o "$AUTOUNATTENDED_ISO" -J -r "$AUTOUNATTENDED_XML" 2>/dev/null || {
 
 # Create the VM using virt-install
 echo "Starting VM installation..."
-virt-install \
+nohup virt-install \
     --name "$VM_NAME" \
     --memory "$RAM_SIZE" \
     --vcpus "$VCPUS" \
@@ -104,8 +107,22 @@ virt-install \
     --cdrom "$WIN_ISO" \
     --disk path="$VIRTIO_ISO",device=cdrom,bus=sata \
     --disk path="$AUTOUNATTENDED_ISO",device=cdrom,bus=sata \
-    --boot cdrom,uefi=on,bootmenu.enable=on,bios.useserial=on \
-    --noautoconsole
+    --boot cdrom,uefi=on,bootmenu.enable=on \
+    --console pty,target.type=virtio --wait \
+    --noautoconsole && {
+        echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
+    } || {
+        echo "Error: virt-install failed. Ensure you have the necessary permissions and that libvirt is running."
+        cleanup
+        exit 1
+} &
+
+
+# Wait for the VM console to be available
+echo "Waiting for console..."
+while ! virsh ttyconsole "$VM_NAME" > /dev/null 2>&1; do
+    sleep 0.3
+done
 
 # Check if 'expect' is installed, if so, use it to send the space key to boot from CD
 # Otherwise, use a loop to send the space key multiple times
@@ -123,22 +140,21 @@ else
     done
 fi
 
+wait
 
-
-echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
 
 
 
 ###############################################################
-if [[ -z "$CODESPACE_NAME" ]]; then
-    PORT=6080
-    HOST=localhost
-else
-    PORT=443
-    HOST=${CODESPACE_NAME}-${PORT}.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}
-fi
-echo "http://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
-/usr/bin/websockify --web /usr/share/spice-html5 ${PORT} localhost:5900
+# if [[ -z "$CODESPACE_NAME" ]]; then
+#     PORT=6080
+#     HOST=localhost
+# else
+#     PORT=443
+#     HOST=${CODESPACE_NAME}-${PORT}.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}
+# fi
+# echo "http://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
+# /usr/bin/websockify --web /usr/share/spice-html5 ${PORT} localhost:5900
 ###############################################################
 
 # 	--features hyperv.relaxed.state=on,hyperv.vapic.state=on,hyperv.spinlocks.state=on,hyperv.vpindex.state=on,hyperv.synic.state=on,hyperv.reset.state=on,hyperv.frequencies.state=on,hyperv.reenlightenment.state=on,hyperv.tlbflush.state=on,hyperv.ipi.state=on \

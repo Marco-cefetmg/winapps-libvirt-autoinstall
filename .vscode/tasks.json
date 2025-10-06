@@ -1,0 +1,57 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+            "HOST": "localhost",
+            "PORT": "6080"
+        }
+    },
+    "tasks": [
+        {
+            "label": "run",
+            "dependsOn": ["clean", "run websockify", "open spice-html5", "start install"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "killall \"websockify\" && ./install.sh -c && exit 0 || exit 0",
+            "problemMatcher": []
+        },
+        {
+            "label": "start install",
+            "type": "shell",
+            "command": "./install.sh",
+            "problemMatcher": []
+        },
+        {
+            "label": "run websockify",
+            "type": "shell",
+            "command": "/usr/bin/websockify --daemon --web /usr/share/spice-html5 ${PORT} localhost:5900",
+            "problemMatcher": []
+        },
+        {
+            "label": "open spice-html5",
+            "type": "shell",
+            "command": "${input:openSimpleBrowser}",
+            "problemMatcher": []
+        }
+
+    ],
+    "inputs": [
+        {
+            "id": "openSimpleBrowser",
+            "type": "command",
+            "command": "simpleBrowser.show",
+            "args": ["http://localhost:6080/spice_auto.html?host=localhost&port=6080"] 
+        }
+    ]
+}
