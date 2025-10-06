@@ -104,13 +104,26 @@ virt-install \
     --cdrom "$WIN_ISO" \
     --disk path="$VIRTIO_ISO",device=cdrom,bus=sata \
     --disk path="$AUTOUNATTENDED_ISO",device=cdrom,bus=sata \
-    --boot cdrom,uefi \
+    --boot cdrom,uefi=on,bootmenu.enable=on,bios.useserial=on \
     --noautoconsole
 
-for run in {1..5}; do
-    virsh send-key "$VM_NAME" --codeset win32 --holdtime 900 VK_SPACE > /dev/null
-    sleep 1 > /dev/null
-done
+# Check if 'expect' is installed, if so, use it to send the space key to boot from CD
+# Otherwise, use a loop to send the space key multiple times
+if command -v expect &> /dev/null; then
+    expect <<EOF
+    spawn virsh console "$VM_NAME"
+    expect "Press any key to boot from CD or DVD.."
+    send ".\r"
+    expect eof
+EOF
+else
+    for run in {1..5}; do
+        virsh send-key "$VM_NAME" --codeset win32 --holdtime 900 VK_SPACE > /dev/null
+        sleep 1 > /dev/null
+    done
+fi
+
+
 
 echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
 
@@ -126,6 +139,7 @@ else
 fi
 echo "http://${HOST}:${PORT}/spice_auto.html?host=${HOST}&port=${PORT}"
 /usr/bin/websockify --web /usr/share/spice-html5 ${PORT} localhost:5900
+###############################################################
 
 # 	--features hyperv.relaxed.state=on,hyperv.vapic.state=on,hyperv.spinlocks.state=on,hyperv.vpindex.state=on,hyperv.synic.state=on,hyperv.reset.state=on,hyperv.frequencies.state=on,hyperv.reenlightenment.state=on,hyperv.tlbflush.state=on,hyperv.ipi.state=on \
 #	--clock hypervclock_present=yes,rtc_present=no,pit_present=no,hpet_present=no,kvmclock_present=no \
