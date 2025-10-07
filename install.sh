@@ -59,7 +59,9 @@ if [ ! -f "$WIN_ISO" ]; then
             exit 1
         }
         WIN_ISO=$(find . -maxdepth 1 -type f \( -iname "*windows*.iso" -o -iname "*win1*.iso" \) -exec readlink -f {} \;)
-        sed -i '/<ProductKey>/,/<\/ProductKey>/d' autounattend.xml
+        if grep -qE "<Key>((0{5}-){4}0{5})<\/Key>" $AUTOUNATTENDED_XML || [[ $WIN_ISO =~ [Ee]val ]]; then # Check for zeros key or eval ISO
+            sed -i '/<ProductKey>/,/<\/ProductKey>/d' $AUTOUNATTENDED_XML # Remove ProductKey tag
+        fi
     fi
 fi
 
