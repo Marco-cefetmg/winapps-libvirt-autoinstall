@@ -88,7 +88,7 @@ mkisofs -o "$AUTOUNATTENDED_ISO" -J -r "$AUTOUNATTENDED_XML" 2>/dev/null || {
 
 # Create the VM using virt-install
 echo "Starting VM installation..."
-virt-install \
+nohup virt-install \
     --name "$VM_NAME" \
     --memory "$RAM_SIZE" \
     --vcpus "$VCPUS" \
@@ -104,13 +104,25 @@ virt-install \
     --cdrom "$WIN_ISO" \
     --disk path="$VIRTIO_ISO",device=cdrom,bus=sata \
     --disk path="$AUTOUNATTENDED_ISO",device=cdrom,bus=sata \
-    --boot cdrom,uefi=on,bootmenu.enable=on,bios.useserial=on \
-    --noautoconsole
+    --boot cdrom,uefi=on,bootmenu.enable=on \
+    --noautoconsole \
+    --wait > virt-install.log 2>&1 &
+    if [ $? -eq 0 ]; then
+        echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
+        disown
+    else
+        echo "Error: virt-install failed. Ensure you have the necessary permissions and that libvirt is running."
+        cleanup
+        exit 1
+    fi
 
 # Check if 'expect' is installed, if so, use it to send the space key to boot from CD
 # Otherwise, use a loop to send the space key multiple times
+echo "Waiting for console..."
+while ! virsh ttyconsole "$VM_NAME" > /dev/null 2>&1; do sleep 0.3; done
 if command -v expect &> /dev/null; then
     expect <<EOF
+    log_user 0
     spawn virsh console "$VM_NAME"
     expect "Press any key to boot from CD or DVD.."
     send ".\r"
@@ -122,11 +134,6 @@ else
         sleep 1 > /dev/null
     done
 fi
-
-
-
-echo "VM creation started. Connect with virt-viewer or virt-manager to monitor progress."
-
 
 
 ###############################################################
